@@ -10,7 +10,7 @@ module Xi::Supercollider
 
     def initialize(clock, server: 'localhost', port: 57110)
       super
-      @playing_synths = []
+      @playing_synths = [].to_set
     end
 
     def set(**params)
@@ -31,15 +31,15 @@ module Xi::Supercollider
       name = @state[:s] || :default
       so_ids.each do |so_id|
         new_synth(name, BASE_SYNTH_ID + so_id, @state)
+        @playing_synths << so_id
       end
-      @playing_synths += so_ids
     end
 
     def do_gate_off_change(so_ids)
       so_ids.each do |so_id|
         set_synth(BASE_SYNTH_ID + so_id, gate: 0)
+        @playing_synths.delete(so_id)
       end
-      @playing_synths -= so_ids
     end
 
     def do_state_change
