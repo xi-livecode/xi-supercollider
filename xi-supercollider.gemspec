@@ -25,4 +25,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "minitest", "~> 5.0"
 
   spec.add_dependency 'osc-ruby'
+  spec.add_dependency 'xi-osc', '~> 0.1.0'
 end
