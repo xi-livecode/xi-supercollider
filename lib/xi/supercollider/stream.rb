@@ -19,35 +19,47 @@ module Xi::Supercollider
 
     def stop
       @mutex.synchronize do
-        @playing_synths.each { |id| set_synth(BASE_SYNTH_ID + id, gate: 0) }
+        @playing_sound_objects.values.each do |h|
+          h[:so_ids].each { |id| set_synth(BASE_SYNTH_ID + id, gate: 0) }
+        end
       end
       super
     end
 
     private
 
-    def do_gate_on_change(so_ids)
-      logger.debug "Gate on change: #{so_ids}"
+    def do_gate_on_change(changes)
+      logger.debug "Gate on change: #{changes}"
+
       name = @state[:s] || :default
-      so_ids.each do |so_id|
-        state_params = @state.reject { |k, _| %i(s).include?(k) }
-        new_synth(name, BASE_SYNTH_ID + so_id, state_params)
-        @playing_synths << so_id
+      state_params = @state.reject { |k, _| %i(s).include?(k) }
+
+      changes.each do |change|
+        at = change.fetch(:at)
+
+        change.fetch(:so_ids).each do |id|
+          new_synth(name, BASE_SYNTH_ID + id, at: at, **state_params)
+          @playing_synths << id
+        end
       end
     end
 
-    def do_gate_off_change(so_ids)
-      logger.debug "Gate off change: #{so_ids}"
-      so_ids.each do |so_id|
-        set_synth(BASE_SYNTH_ID + so_id, gate: 0)
-        @playing_synths.delete(so_id)
+    def do_gate_off_change(changes)
+      logger.debug "Gate off change: #{changes}"
+
+      changes.each do |change|
+        at = change.fetch(:at)
+        change.fetch(:so_ids).each do |id|
+          set_synth(BASE_SYNTH_ID + id, gate: 0, at: at)
+          @playing_synths.delete(id)
+        end
       end
     end
 
     def do_state_change
       logger.debug "State change: #{changed_state}"
-      @playing_synths.each do |so_id|
-        set_synth(BASE_SYNTH_ID + so_id, **changed_state)
+      @playing_sound_objects.values.each do |h|
+        h[:so_ids].each { |id| set_synth(BASE_SYNTH_ID + id, **changed_state) }
       end
     end
 
