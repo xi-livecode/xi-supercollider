@@ -13,9 +13,8 @@ module Xi::Supercollider
       @playing_synths = [].to_set
     end
 
-    def set(**params)
-      params[:gate] ||= :freq
-      super(params)
+    def set(params)
+      super(gate: params[:gate] || :freq, **params)
     end
 
     def stop
@@ -28,14 +27,17 @@ module Xi::Supercollider
     private
 
     def do_gate_on_change(so_ids)
+      logger.debug "Gate on change: #{so_ids}"
       name = @state[:s] || :default
       so_ids.each do |so_id|
-        new_synth(name, BASE_SYNTH_ID + so_id, @state)
+        state_params = @state.reject { |k, _| %i(s).include?(k) }
+        new_synth(name, BASE_SYNTH_ID + so_id, state_params)
         @playing_synths << so_id
       end
     end
 
     def do_gate_off_change(so_ids)
+      logger.debug "Gate off change: #{so_ids}"
       so_ids.each do |so_id|
         set_synth(BASE_SYNTH_ID + so_id, gate: 0)
         @playing_synths.delete(so_id)
@@ -43,8 +45,9 @@ module Xi::Supercollider
     end
 
     def do_state_change
+      logger.debug "State change: #{changed_state}"
       @playing_synths.each do |so_id|
-        set_synth(BASE_SYNTH_ID + so_id, changed_state)
+        set_synth(BASE_SYNTH_ID + so_id, **changed_state)
       end
     end
 
