@@ -42,10 +42,10 @@ module Xi::Supercollider
       state_params = @state.reject { |k, _| %i(s).include?(k) }
 
       changes.each do |change|
-        at = change.fetch(:at)
+        at = Time.at(change.fetch(:at))
 
         change.fetch(:so_ids).each do |id|
-          new_synth(name, BASE_SYNTH_ID + id, **state_params)
+          new_synth(name, BASE_SYNTH_ID + id, **state_params, at: at)
           @playing_synths << id
         end
       end
@@ -55,9 +55,10 @@ module Xi::Supercollider
       logger.debug "Gate off change: #{changes}"
 
       changes.each do |change|
-        at = change.fetch(:at)
+        at = Time.at(change.fetch(:at))
+
         change.fetch(:so_ids).each do |id|
-          set_synth(BASE_SYNTH_ID + id, gate: 0)
+          set_synth(BASE_SYNTH_ID + id, gate: 0, at: at)
           @playing_synths.delete(id)
         end
       end
