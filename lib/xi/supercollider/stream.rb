@@ -11,6 +11,7 @@ module Xi::Supercollider
     def initialize(clock, server: 'localhost', port: 57110)
       super
       @playing_synths = [].to_set
+      at_exit { free_playing_synths }
     end
 
     def set(params)
@@ -24,6 +25,12 @@ module Xi::Supercollider
         end
       end
       super
+    end
+
+    def free_playing_synths
+      @playing_synths.each do |id|
+        free_synth(BASE_SYNTH_ID + id)
+      end
     end
 
     private
