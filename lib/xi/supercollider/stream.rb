@@ -19,8 +19,8 @@ module Xi::Supercollider
 
     def stop
       @mutex.synchronize do
-        @playing_sound_objects.values.each do |h|
-          h[:so_ids].each { |id| set_synth(BASE_SYNTH_ID + id, gate: 0) }
+        @playing_synths.each do |id|
+          set_synth(BASE_SYNTH_ID + id, gate: 0)
         end
       end
       super
@@ -38,7 +38,7 @@ module Xi::Supercollider
         at = change.fetch(:at)
 
         change.fetch(:so_ids).each do |id|
-          new_synth(name, BASE_SYNTH_ID + id, at: at, **state_params)
+          new_synth(name, BASE_SYNTH_ID + id, **state_params)
           @playing_synths << id
         end
       end
@@ -50,7 +50,7 @@ module Xi::Supercollider
       changes.each do |change|
         at = change.fetch(:at)
         change.fetch(:so_ids).each do |id|
-          set_synth(BASE_SYNTH_ID + id, gate: 0, at: at)
+          set_synth(BASE_SYNTH_ID + id, gate: 0)
           @playing_synths.delete(id)
         end
       end
@@ -58,8 +58,8 @@ module Xi::Supercollider
 
     def do_state_change
       logger.debug "State change: #{changed_state}"
-      @playing_sound_objects.values.each do |h|
-        h[:so_ids].each { |id| set_synth(BASE_SYNTH_ID + id, **changed_state) }
+      @playing_synths.each do |id|
+        set_synth(BASE_SYNTH_ID + id, **changed_state)
       end
     end
 
