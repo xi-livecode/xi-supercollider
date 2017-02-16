@@ -3,7 +3,7 @@ require 'xi/osc'
 require 'set'
 
 module Xi::Supercollider
-  class Stream < ::Stream
+  class Stream < Xi::Stream
     include Xi::OSC
 
     BASE_SYNTH_ID = 1000
