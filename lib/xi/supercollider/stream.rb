@@ -1,3 +1,4 @@
+require 'xi/supercollider/music_parameters'
 require 'xi/stream'
 require 'xi/osc'
 require 'set'
@@ -5,6 +6,7 @@ require 'set'
 module Xi::Supercollider
   class Stream < Xi::Stream
     include Xi::OSC
+    prepend MusicParameters
 
     BASE_SYNTH_ID = 1000
 
