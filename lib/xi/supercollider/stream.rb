@@ -44,11 +44,15 @@ module Xi::Supercollider
       name = @state[:s] || :default
       state_params = @state.reject { |k, _| %i(s).include?(k) }
 
+      freq = Array(state_params[:freq])
+
       changes.each do |change|
         at = Time.at(change.fetch(:at))
 
-        change.fetch(:so_ids).each do |id|
-          new_synth(name, BASE_SYNTH_ID + id, **state_params, at: at)
+        change.fetch(:so_ids).each.with_index do |id, i|
+          freq_i = freq[i % freq.size]
+
+          new_synth(name, BASE_SYNTH_ID + id, **state_params, freq: freq_i, at: at)
           @playing_synths << id
         end
       end
