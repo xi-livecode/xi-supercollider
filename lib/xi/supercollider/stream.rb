@@ -39,7 +39,7 @@ module Xi::Supercollider
     private
 
     def do_gate_on_change(changes)
-      logger.debug "Gate on change: #{changes}"
+      debug "Gate on change: #{changes}"
 
       name = @state[:s] || :default
       state_params = @state.reject { |k, _| %i(s).include?(k) }
@@ -59,7 +59,7 @@ module Xi::Supercollider
     end
 
     def do_gate_off_change(changes)
-      logger.debug "Gate off change: #{changes}"
+      debug "Gate off change: #{changes}"
 
       changes.each do |change|
         at = Time.at(change.fetch(:at))
@@ -72,7 +72,7 @@ module Xi::Supercollider
     end
 
     def do_state_change
-      logger.debug "State change: #{changed_state}"
+      debug "State change: #{changed_state}"
       @playing_synths.each do |id|
         set_synth(BASE_SYNTH_ID + id, **changed_state)
       end
