@@ -10,7 +10,7 @@ module Xi::Supercollider
 
     BASE_SYNTH_ID = 1000
 
-    def initialize(name, clock, server: 'localhost', port: 57110)
+    def initialize(name, clock, server: 'localhost', port: 57110, **opts)
       super
 
       @playing_synths = [].to_set
