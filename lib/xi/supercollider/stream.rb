@@ -1,4 +1,3 @@
-require 'xi/supercollider/music_parameters'
 require 'xi/stream'
 require 'xi/osc'
 require 'set'
@@ -6,7 +5,14 @@ require 'set'
 module Xi::Supercollider
   class Stream < Xi::Stream
     include Xi::OSC
-    prepend MusicParameters
+
+    DEFAULT_PARAMS = {
+      out:  0,
+      amp:  1.0,
+      freq: 440,
+      pan:  0.0,
+      vel:  127,
+    }
 
     BASE_SYNTH_ID = 1000
 
@@ -37,6 +43,22 @@ module Xi::Supercollider
     end
 
     private
+
+    def transform_state
+      super
+
+      @state = DEFAULT_PARAMS.merge(@state)
+
+      if changed_param?(:db) && !changed_param?(:amp)
+        @state[:amp] = @state[:db].db_to_amp
+        @changed_params << :amp
+      end
+
+      if changed_param?(:midinote) && !changed_param?(:freq)
+        @state[:freq] = Array(@state[:midinote]).map(&:midi_to_cps)
+        @changed_params << :freq
+      end
+    end
 
     def do_gate_on_change(changes)
       debug "Gate on change: #{changes}"
