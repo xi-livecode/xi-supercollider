@@ -92,7 +92,7 @@ module Xi::Supercollider
     end
 
     def osc_args(**args)
-      args.map { |k, v| [k.to_s, v] }.flatten(1)
+      args.map { |k, v| [k.to_s, Array(v).first] }.flatten(1)
     end
   end
 end
