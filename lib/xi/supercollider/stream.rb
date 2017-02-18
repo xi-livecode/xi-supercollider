@@ -120,7 +120,7 @@ module Xi::Supercollider
     def coerce_osc_value(value)
       v = Array(value).first
       v = v.to_f if v.is_a?(Rational)
-      v = v.to_i if !v.is_a?(Float) || !v.is_a?(String) || !v.is_a?(Symbol)
+      v = v.to_i if !v.is_a?(Float) && !v.is_a?(String) && !v.is_a?(Symbol)
       v
     end
   end
