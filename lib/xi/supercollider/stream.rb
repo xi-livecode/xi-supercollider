@@ -6,6 +6,7 @@ module Xi::Supercollider
   class Stream < Xi::Stream
     include Xi::OSC
 
+    MAX_NODE_ID = 10000
     DEFAULT_PARAMS = {
       out:  0,
       amp:  1.0,
@@ -14,11 +15,10 @@ module Xi::Supercollider
       vel:  127,
     }
 
-    BASE_SYNTH_ID = 1000
-
-    def initialize(name, clock, server: 'localhost', port: 57110, **opts)
+    def initialize(name, clock, server: 'localhost', port: 57110, base_node_id: 1000, **opts)
       super
 
+      @base_node_id = base_node_id
       @playing_synths = [].to_set
       at_exit { free_playing_synths }
     end
@@ -29,17 +29,21 @@ module Xi::Supercollider
 
     def stop
       @mutex.synchronize do
-        @playing_synths.each do |id|
-          set_synth(BASE_SYNTH_ID + id, gate: 0)
+        @playing_synths.each do |so_id|
+          set_synth(node_id(so_id), gate: 0)
         end
       end
       super
     end
 
     def free_playing_synths
-      @playing_synths.each do |id|
-        free_synth(BASE_SYNTH_ID + id)
+      @playing_synths.each do |so_id|
+        free_synth(node_id(so_id))
       end
+    end
+
+    def node_id(so_id)
+      (@base_node_id + so_id) % MAX_NODE_ID
     end
 
     private
@@ -71,11 +75,11 @@ module Xi::Supercollider
       changes.each do |change|
         at = Time.at(change.fetch(:at))
 
-        change.fetch(:so_ids).each.with_index do |id, i|
+        change.fetch(:so_ids).each.with_index do |so_id, i|
           freq_i = freq[i % freq.size]
 
-          new_synth(name, BASE_SYNTH_ID + id, **state_params, freq: freq_i, at: at)
-          @playing_synths << id
+          new_synth(name, node_id(so_id), **state_params, freq: freq_i, at: at)
+          @playing_synths << so_id
         end
       end
     end
@@ -86,17 +90,17 @@ module Xi::Supercollider
       changes.each do |change|
         at = Time.at(change.fetch(:at))
 
-        change.fetch(:so_ids).each do |id|
-          set_synth(BASE_SYNTH_ID + id, gate: 0, at: at)
-          @playing_synths.delete(id)
+        change.fetch(:so_ids).each do |so_id|
+          set_synth(node_id(so_id), gate: 0, at: at)
+          @playing_synths.delete(so_id)
         end
       end
     end
 
     def do_state_change
       debug "State change: #{changed_state}"
-      @playing_synths.each do |id|
-        set_synth(BASE_SYNTH_ID + id, **changed_state)
+      @playing_synths.each do |so_id|
+        set_synth(node_id(so_id), **changed_state)
       end
     end
 
