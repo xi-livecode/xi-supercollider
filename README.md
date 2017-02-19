@@ -1,4 +1,4 @@
-# Xi::SuperCollider
+# Xi::SuperCollider  [![Build Status](https://travis-ci.org/xi-livecode/xi-supercollider.svg?branch=master)](https://travis-ci.org/xi-livecode/xi-supercollider)
 
 SuperCollider support for Xi
 
