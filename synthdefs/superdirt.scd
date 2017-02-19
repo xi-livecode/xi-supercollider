@@ -14,13 +14,13 @@
 // "accelerate" is used for a pitch glide
 // "sustain" changes the envelope timescale
 (
-  SynthDef(\smandolin, {|out, sustain=1, pan, accelerate, freq, detune=0.2|
+  SynthDef(\smandolin, { |out, amp=1, sustain=1, pan, accelerate, freq, detune=0.2|
     var env = EnvGen.ar(Env.linen(0.002, 0.996, 0.002, 1,-3), timeScale: sustain, doneAction: 2);
     var sound = Decay.ar(Impulse.ar(0,0,0.1), 0.1 * (freq.cpsmidi) / 69) * WhiteNoise.ar;
     var pitch = freq * Line.kr(1, 1 + accelerate, sustain);
     sound = CombL.ar(sound, 0.05, pitch.reciprocal * (1 - (detune/100)), sustain)
       + CombL.ar(sound, 0.05, pitch.reciprocal * (1 + (detune/100)), sustain);
-    OffsetOut.ar(out, Pan2.ar(sound * env, pan))
+    OffsetOut.ar(out, Pan2.ar(sound * env * amp, pan))
   }).add
 );
 
@@ -32,15 +32,16 @@
 // "sustain" affects the overall envelope timescale
 // "accelerate" for pitch glide
 (
-  SynthDef(\sgong, { |out, sustain=1, pan, accelerate, freq, voice=0, decay=1|
+  SynthDef(\sgong, { |out, amp=1, sustain=1, pan, accelerate, freq, voice=0, decay=1|
     // lowest modes for clamped circular plate
-    var freqlist =[1.000,  2.081,  3.414,  3.893,  4.995,  5.954,  6.819,  8.280,  8.722,  8.882, 10.868, 11.180, 11.754,
-      13.710, 13.715, 15.057, 15.484, 16.469, 16.817, 18.628]**1.0;
-    var tscale = 100.0 / freq / (freqlist**(2-clip(decay,0,2)));
-    var ascale =freqlist**clip(voice,0,4);
-    var sound = Mix.arFill(15, {arg i; EnvGen.ar(Env.perc(0.01*tscale[i], 0.5*tscale[i], 0.2*ascale[i] ), timeScale:sustain*5)
-      * SinOsc.ar(freq * freqlist[i] * Line.kr(1, 1+accelerate, sustain))});
-    OffsetOut.ar(out, Pan2.ar(sound, pan))
+    var freqlist = [1.000,  2.081,  3.414,  3.893,  4.995,  5.954,  6.819,  8.280,  8.722,  8.882, 10.868, 11.180, 11.754, 13.710, 13.715, 15.057, 15.484, 16.469, 16.817, 18.628] ** 1.0;
+    var tscale = 100.0 / freq / (freqlist ** (2 - clip(decay, 0, 2)));
+    var ascale =freqlist ** clip(voice,0,4);
+    var sound = Mix.arFill(15, { arg i;
+		EnvGen.ar(Env.perc(0.01 * tscale[i], 0.5 * tscale[i], 0.2 * ascale[i]), timeScale: sustain * 5)
+      * SinOsc.ar(freq * freqlist[i] * Line.kr(1, 1 + accelerate, sustain))
+	});
+    OffsetOut.ar(out, Pan2.ar(sound * amp / 15, pan))
   }).add
 );
 
@@ -49,22 +50,22 @@
 // Uses the "velocity" parameter to affect how hard the keys are pressed
 // "sustain" controls envelope and decay time.
 (
-  SynthDef(\spiano,{|out, sustain=1, pan, velocity=1, detune=0.1, muffle=1, stereo=0.2, freq=440 |
-    var env = EnvGen.ar(Env.linen(0.002, 0.996, 0.002, 1,-3), timeScale:sustain, doneAction:2);
+  SynthDef(\spiano, { |out, amp=1, sustain=1, pan, velocity=1, detune=0.1, muffle=1, stereo=0.2, freq=440|
+    var env = EnvGen.ar(Env.linen(0.002, 0.996, 0.002, 1, -3), timeScale: sustain, doneAction: 2);
     // the +0.01 to freq is because of edge case rounding internal to the MdaPiano synth
-    var sound = MdaPiano.ar(freq+0.01, vel:velocity*100, hard:0.8*velocity, decay:0.1*sustain,
-      tune:0.5, random:0.05, stretch:detune, muffle:0.8*muffle, stereo:stereo);
-    OffsetOut.ar(out, Pan2.ar(sound * env, pan))
+    var sound = MdaPiano.ar(freq + 0.01, vel: velocity * 100, hard: 0.8 * velocity, decay: 0.1 * sustain,
+      tune: 0.5, random: 0.05, stretch: detune, muffle: 0.8 * muffle, stereo: stereo);
+    OffsetOut.ar(out, Pan2.ar(sound * env * amp * 0.35, pan))
   }).add
 );
 
 // Waveguide mesh, hexagonal drum-like membrane
 (
-  SynthDef(\shex,{|out, speed=1, sustain=1, pan, freq, accelerate |
-    var env = EnvGen.ar(Env.linen(0.02, 0.96, 0.02, 1,-3), timeScale:sustain, doneAction:2);
-    var tension = 0.05*freq/400 * Line.kr(1,accelerate+1, sustain);
+  SynthDef(\shex, { |out, speed=1, sustain=1, pan, freq, accelerate|
+    var env = EnvGen.ar(Env.linen(0.02, 0.96, 0.02, 1,-3), timeScale: sustain, doneAction: 2);
+    var tension = 0.05 * freq / 400 * Line.kr(1, accelerate + 1, sustain);
     var loss = 1.0 - (0.01 * speed / freq);
-    var sound = MembraneHexagon.ar(Decay.ar(Impulse.ar(0,0,1), 0.01), tension, loss);
+    var sound = MembraneHexagon.ar(Decay.ar(Impulse.ar(0, 0, 1), 0.01), tension, loss);
     OffsetOut.ar(out, Pan2.ar(sound * env, pan))
   }).add
 );
@@ -78,12 +79,13 @@
 // "pitch1" affects the click frequency
 // "decay" changes the click duration relative to the overall timescale
 (
-  SynthDef(\skick, {|out, sustain=1, pan, accelerate, n, pitch1=1, decay=1 |
+  SynthDef(\skick, { |out, sustain=1, pan, accelerate, n, pitch1=1, decay=1|
     var env, sound, dur, clickdur;
-    env = EnvGen.ar(Env.linen(0.01, 0, 0.5, 1, -3), timeScale:sustain, doneAction:2);
+    env = EnvGen.ar(Env.linen(0.01, 0, 0.5, 1, -3), timeScale: sustain, doneAction: 2);
     sound = SinOsc.ar((n - 25.5).midicps);
-    clickdur = 0.02*sustain*decay;
-    sound = sound + (LPF.ar(WhiteNoise.ar(1), 1500*pitch1*Line.kr(1,1+accelerate,clickdur) ) * Line.ar(1, 0, clickdur));
+    clickdur = 0.02 * sustain * decay;
+    sound = sound + (LPF.ar(WhiteNoise.ar(1), 1500 * pitch1 * Line.kr(1, 1 + accelerate, clickdur))
+		* Line.ar(1, 0, clickdur));
     OffsetOut.ar(out, Pan2.ar(sound * env, pan))
   }).add
 );
@@ -95,7 +97,7 @@
 // "speed" the filter sweep speed
 // "voice" the sinewave feedback
 (
-  SynthDef(\s808, {|out, speed=1, sustain=1, pan, voice=0, n |
+  SynthDef(\s808, { |out, speed=1, sustain=1, pan, voice=0, n|
     var env, sound, freq;
     n = ((n>0)*n) + ((n<1)*3);
     freq = (n*10).midicps;
