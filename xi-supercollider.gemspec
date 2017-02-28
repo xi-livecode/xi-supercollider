@@ -24,6 +24,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake", "~> 10.0"
   spec.add_development_dependency "minitest", "~> 5.0"
 
-  spec.add_dependency 'xi-lang', spec.version
-  spec.add_dependency 'xi-osc', spec.version
+  spec.add_dependency 'xi-lang', '0.1.5'
+  spec.add_dependency 'xi-osc',  '0.1.4'
 end
