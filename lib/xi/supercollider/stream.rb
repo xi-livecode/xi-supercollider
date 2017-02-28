@@ -30,16 +30,14 @@ module Xi::Supercollider
     def stop
       @mutex.synchronize do
         @playing_synths.each do |so_id|
-          set_synth(node_id(so_id), gate: 0)
+          n_set(node_id(so_id), gate: 0)
         end
       end
       super
     end
 
     def free_playing_synths
-      @playing_synths.each do |so_id|
-        free_synth(node_id(so_id))
-      end
+      n_free(*@playing_synths.map { |so_id| node_id(so_id) })
     end
 
     def node_id(so_id)
@@ -78,7 +76,7 @@ module Xi::Supercollider
         change.fetch(:so_ids).each.with_index do |so_id, i|
           freq_i = freq[i % freq.size]
 
-          new_synth(name, node_id(so_id), **state_params, freq: freq_i, at: at)
+          s_new(name, node_id(so_id), **state_params, freq: freq_i, at: at)
           @playing_synths << so_id
         end
       end
@@ -91,7 +89,7 @@ module Xi::Supercollider
         at = Time.at(change.fetch(:at))
 
         change.fetch(:so_ids).each do |so_id|
-          set_synth(node_id(so_id), gate: 0, at: at)
+          n_set(node_id(so_id), gate: 0, at: at)
           @playing_synths.delete(so_id)
         end
       end
@@ -100,21 +98,21 @@ module Xi::Supercollider
     def do_state_change
       debug "State change: #{changed_state}"
       @playing_synths.each do |so_id|
-        set_synth(node_id(so_id), **changed_state)
+        n_set(node_id(so_id), **changed_state)
       end
     end
 
-    def set_synth(id, at: Time.now, **args)
+    def n_set(id, at: Time.now, **args)
       send_bundle('/n_set', id, *osc_args(args), at: at)
     end
 
-    def new_synth(name, id, at: Time.now, **args)
-      # '/s_new', synth_name (s), synth_id (i), node_action (i), target_id (i), *args (s, i)
-      send_bundle('/s_new', name.to_s, id.to_i, 0, 1, *osc_args(args), at: at)
+    def s_new(name, id, add_action: 0, target_id: 1, at: Time.now, **args)
+      send_bundle('/s_new', name.to_s, id.to_i, add_action.to_i,
+                  target_id.to_i, *osc_args(args), at: at)
     end
 
-    def free_synth(id, at: Time.now)
-      send_bundle('/n_free', id, at: at)
+    def n_free(*ids, at: Time.now)
+      send_bundle('/n_free', *ids, at: at)
     end
 
     def osc_args(**args)
