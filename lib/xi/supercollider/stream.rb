@@ -73,7 +73,7 @@ module Xi::Supercollider
         at = Time.at(change.fetch(:at))
 
         change.fetch(:so_ids).each.with_index do |so_id, i|
-          freq_i = freq[i % freq.size]
+          freq_i = freq.size > 0 ? freq[i % freq.size] : nil
 
           s_new(name, node_id(so_id), **state_params, freq: freq_i, at: at)
           @playing_synths << so_id
