@@ -10,7 +10,6 @@ module Xi::Supercollider
     DEFAULT_PARAMS = {
       out:  0,
       amp:  1.0,
-      freq: 440,
       pan:  0.0,
       vel:  127,
     }
