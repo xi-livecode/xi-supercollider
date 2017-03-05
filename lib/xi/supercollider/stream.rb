@@ -14,7 +14,7 @@ module Xi::Supercollider
       vel:  127,
     }
 
-    def initialize(name, clock, server: 'localhost', port: 57110, base_node_id: 1000, **opts)
+    def initialize(name, clock, server: 'localhost', port: 57110, base_node_id: 2000, **opts)
       super
 
       @base_node_id = base_node_id
