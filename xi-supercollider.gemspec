@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
 
   spec.summary       = %q{SuperCollider support for Xi}
   spec.homepage      = "https://github.com/xi-livecode/xi-supercollider"
-  spec.license       = "MIT"
+  spec.license       = "GPL-3.0-or-later"
 
   spec.files         = `git ls-files -z`.split("\x0").reject do |f|
     f.match(%r{^(test|spec|features)/})
